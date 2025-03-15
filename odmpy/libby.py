@@ -104,6 +104,8 @@ USER_AGENT = (
     "Mozilla/5.0 (Macintosh; Intel Mac OS X 11_1) AppleWebKit/605.1.15 (KHTML, like Gecko) "
     "Version/14.0.2 Safari/605.1.15"
 )
+DEWEY_CLIENT_VERSION = "18.5.2"
+
 EBOOK_DOWNLOADABLE_FORMATS = (
     LibbyFormats.EBookEPubAdobe,
     LibbyFormats.EBookEPubOpen,
@@ -427,6 +429,28 @@ class LibbyClient(object):
             # persist to settings
             self.save_settings(res)
         return res
+
+    def renew_chip(self, auto_save: bool = True, authenticated: bool = True) -> Dict:
+        """
+        Refresh the identity chip (contains auth token). This prevents having to clone with code every week
+        after original token expires.
+
+        :param auto_save:
+        :param authenticated:
+        :return:
+        """
+        res: Dict = self.make_request(
+            "chip",
+            params={"c":f"d:{DEWEY_CLIENT_VERSION}", "s":0, "v":self.identity.get("chip").split("-")[0] },
+            method="POST",
+            authenticated=authenticated,
+        )
+        if auto_save:
+            # persist to settings
+            self.save_settings(res)
+        return res
+
+
 
     def get_token(self) -> Optional[str]:
         return self.identity_token or self.identity.get("identity")

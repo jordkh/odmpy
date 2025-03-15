@@ -616,6 +616,12 @@ def run(custom_args: Optional[List[str]] = None, be_quiet: bool = False) -> None
         help="Remove previously saved odmpy Libby settings.",
     )
     parser_libby.add_argument(
+        "--renew",
+        dest="renew_chip",
+        action="store_true",
+        help="Renew identity token for Libby.",
+    )
+    parser_libby.add_argument(
         "--check",
         dest=OdmpyNoninteractiveOptions.Check,
         action="store_true",
@@ -782,6 +788,11 @@ def run(custom_args: Optional[List[str]] = None, be_quiet: bool = False) -> None
                 libby_client.clear_settings()
                 logger.info("Cleared settings.")
                 return
+            
+            if args.command_name == OdmpyCommands.Libby and args.renew_chip:
+                libby_client.renew_chip()
+                logger.info("Renewed identity.")
+                return
 
             if args.command_name == OdmpyCommands.Libby and args.check_signed_in:
                 if not libby_client.get_token():
@@ -838,7 +849,7 @@ def run(custom_args: Optional[List[str]] = None, be_quiet: bool = False) -> None
                         "Could not log in with code.\n"
                         "Make sure that you have entered the right code and within the time limit."
                     ) from ce
-
+            libby_client.renew_chip()
             synced_state = libby_client.sync()
             cards = synced_state.get("cards", [])
             # sort by checkout date so that recent most is at the bottom
